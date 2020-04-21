@@ -108,7 +108,8 @@ void distribute_vector(const int n, double* input_vector, double** local_vector,
                 display[i] = display[i - 1] + sendcnt[i - 1];
             }
         }
-        MPI_scatterv(input_vector, sendcnt, display, MPI_DOUBLE, *local_vector, localsize, MPI_DOUBLE, 0, col_comm);
+        MPI_Scatterv(input_vector, sendcnt, display, MPI_DOUBLE, *local_vector, localsize, MPI_DOUBLE, 0, col_comm); 
+        //test test
     }
 
     MPI_Comm_free(&col_comm);
