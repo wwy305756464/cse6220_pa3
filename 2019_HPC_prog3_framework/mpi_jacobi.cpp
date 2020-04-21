@@ -83,7 +83,7 @@ void distribute_vector(const int n, double* input_vector, double** local_vector,
     int size_p;
     int size_q;
 
-    MPI_Comm_rank(comm, &rank);
+    MPI_Comm_rank(comm, &localrank);
     MPI_Cart_coords(comm, localrank, 2, &coordrank[0]);
 
     int rest_dim[2] = {0 , 1};   //True of False;
