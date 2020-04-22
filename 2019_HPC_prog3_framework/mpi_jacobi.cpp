@@ -567,7 +567,7 @@ void distributed_jacobi(const int n, double* local_A, double* local_b, double* l
     //     Asum = new double[rowcnt];
     // }
 
-    for(int iter = 0; iter < max_iter; ++iter){
+    for(int i = 0; i < max_iter; ++i){
         distributed_matrix_vector_mult(n, R, local_x, Rsum, comm);
         distributed_matrix_vector_mult(n, local_A, local_x, Asum, comm);
 
