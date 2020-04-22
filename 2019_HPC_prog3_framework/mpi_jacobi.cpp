@@ -577,7 +577,7 @@ void distributed_jacobi(const int n, double* local_A, double* local_b, double* l
             for(int j = 0; j < rowcnt; ++j){
                 errlocal += (Asum[j] - local_b[j]) * (Asum[j] - local_b[j]);
             }
-            MPI_Reduce(&errlocal, errsum, 1, MPI_DOUBLE, MPI_SUM, 0, column_comm);
+            MPI_Reduce(&errlocal, &errsum, 1, MPI_DOUBLE, MPI_SUM, 0, column_comm);
             if(cordas[0] == 0 && errsum < l2_termination){
                 status = true;
             }
