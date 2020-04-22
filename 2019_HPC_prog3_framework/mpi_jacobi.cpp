@@ -24,96 +24,57 @@
 void distribute_vector(const int n, double* input_vector, double** local_vector, MPI_Comm comm)
 {
     // TODO
-    // retrieve Cartesian topology information
-    // int dimension[2];
-    // int periods[2];
-    // int coordinates[2];
-    // MPI_Cart_get(comm, 2, dimension, periods, coordinates);
-    // int m = dimension[0];
-    // int rank; 
-    // MPI_Comm_rank(comm, &rank);
+    retrieve Cartesian topology information
+    int dimension[2];
+    int periods[2];
+    int coordinates[2];
+    MPI_Cart_get(comm, 2, dimension, periods, coordinates);
+    int m = dimension[0];
+    int rank; 
+    MPI_Comm_rank(comm, &rank);
 
-    // //create comm for the first column
-    // int color;
-    // if (coordinates[1]==0){
-    //     color = 0;
-    // }
-    // else{
-    //     color = 1;
-    // }
-    // MPI_Comm first_column;
-    // MPI_Comm_split(comm, color, 1, &first_column);
+    //create comm for the first column
+    int color;
+    if (coordinates[1]==0){
+        color = 0;
+    }
+    else{
+        color = 1;
+    }
+    MPI_Comm first_column;
+    MPI_Comm_split(comm, color, 1, &first_column);
 
-    // //calculate the parameters for scatter
-    // int rankzero; 
-    // int firstgridcoords[2] = {0,0};
-    // MPI_Cart_rank(comm, firstgridcoords, &rankzero);
-    // int *sendcounts = NULL;
-    // int *displs = NULL;
-    // if (rank == rankzero)
-    // {
-    //     sendcounts = new int[m];
-    //     displs = new int[m];
-    //     for (int i = 0; i < m; i++)
-    //     {
-    //         sendcounts[i] = block_decompose(n, m, i);
-    //         if (i == 0){
-    //             displs[i] = 0;
-    //         }
-    //         else {
-    //             displs[i] = displs[i-1] + sendcounts[i-1];
-    //         }
-    //     }
-    // }
-
-    // //send data from processor(0,0) onto processors(i,0)
-    // if (color == 0)
-    // {
-    //     int recvcount = block_decompose(n, m, coordinates[0]);
-    //     double *recvbuf = new double[recvcount];
-    //     MPI_Scatterv(&input_vector[0], sendcounts, displs, MPI_DOUBLE, 
-    //     recvbuf, recvcount, MPI_DOUBLE, rankzero, first_column);
-    //     *local_vector = recvbuf; 
-    // }
-
-
-    int coordrank[2];
-    int localrank = 0;
-
-    int size_p;
-    int size_q;
-
-    MPI_Comm_rank(comm, &localrank);
-    MPI_Cart_coords(comm, localrank, 2, &coordrank[0]);
-
-    int rest_dim[2] = {0 , 1};   //True of False;
-    MPI_Comm col_comm;
-    MPI_Cart_sub(comm, rest_dim, &col_comm);
-
-    MPI_Comm_size(comm, &size_p);
-    size_q = (int) sqrt(size_p);
-
-    int localsize = block_decompose(n, size_q, coordrank[0]);
-
-    if(coordrank[1] == 0){
-        *local_vector = (double*)malloc(sizeof(double)*localsize);
-        int sendcnt[size_q];
-        int display[size_q];
-        for(int i = 0; i < size_q; ++i){
-            sendcnt[i] = block_decompose(n, size_q, i);
-            //display[i] = (i != 0) ? (display[i - 1] + sendcnt[i - 1]) : 0;   //Potential problems
-            if(i == 0){
-                display[i] = 0;
-            }else{
-                display[i] = display[i - 1] + sendcnt[i - 1];
+    //calculate the parameters for scatter
+    int rankzero; 
+    int firstgridcoords[2] = {0,0};
+    MPI_Cart_rank(comm, firstgridcoords, &rankzero);
+    int *sendcounts = NULL;
+    int *displs = NULL;
+    if (rank == rankzero)
+    {
+        sendcounts = new int[m];
+        displs = new int[m];
+        for (int i = 0; i < m; i++)
+        {
+            sendcounts[i] = block_decompose(n, m, i);
+            if (i == 0){
+                displs[i] = 0;
+            }
+            else {
+                displs[i] = displs[i-1] + sendcounts[i-1];
             }
         }
-        MPI_Scatterv(input_vector, sendcnt, display, MPI_DOUBLE, *local_vector, localsize, MPI_DOUBLE, 0, col_comm); 
-        //test test
     }
 
-    MPI_Comm_free(&col_comm);
-    return;
+    //send data from processor(0,0) onto processors(i,0)
+    if (color == 0)
+    {
+        int recvcount = block_decompose(n, m, coordinates[0]);
+        double *recvbuf = new double[recvcount];
+        MPI_Scatterv(&input_vector[0], sendcounts, displs, MPI_DOUBLE, 
+        recvbuf, recvcount, MPI_DOUBLE, rankzero, first_column);
+        *local_vector = recvbuf; 
+    }
 }
 
 // gather the local vector distributed among (i,0) to the processor (0,0)
