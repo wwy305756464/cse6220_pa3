@@ -297,7 +297,7 @@ void distribute_matrix(const int n, double* input_matrix, double** local_matrix,
 
     double *receivebuffer = new double[rowreceivecnt * colreceivecnt];
     int temp1 = n / dimens[0], temp2 = n % dimens[0];
-    for(int i = 0; i < temp; ++i){
+    for(int i = 0; i < temp1; ++i){
         MPI_Scatterv(&input_matrix[i*n], rowsendcnt, rowdisplays, MPI_DOUBLE, &receivebuffer[i*colreceivecnt], colreceivecnt, MPI_DOUBLE, localrank, comm);
     }
 
