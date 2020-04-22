@@ -79,7 +79,7 @@ void distribute_vector(const int n, double* input_vector, double** local_vector,
     int cordas[2], dimens[2], timeslots[2];
     int rank, tag, localrank;
     int receivecnt;
-    bool restdimens[2] = {0, 0};
+    int restdimens[2] = {0, 0};
     int *sendcnt = NULL, *displays = NULL;
     MPI_Cart_get(comm, 2, dimens, timeslots, cordas);
     MPI_Comm_rank(comm, &rank);
@@ -98,7 +98,7 @@ void distribute_vector(const int n, double* input_vector, double** local_vector,
     if(rank == localrank){
         sendcnt = new int[temp];
         displays = new int[temp];
-        for(int i = 0; i < m; ++i){
+        for(int i = 0; i < n; ++i){
             sendcnt[i] = block_decompose(n, temp, i);
             displays[i] = (i == 0) ? 0 : displays[i - 1] + sendcnt[i - 1];   
         }
