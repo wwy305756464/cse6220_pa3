@@ -187,85 +187,136 @@ void distribute_matrix(const int n, double* input_matrix, double** local_matrix,
 {
     // TODO
     // retrieve Cartesian topology information
-    int dimension[2];
-    int periods[2];
-    int coordinates[2];
-    MPI_Cart_get(comm, 2, dimension, periods, coordinates);
-    int rank; 
-    MPI_Comm_rank(comm, &rank);
+    // int dimension[2];
+    // int periods[2];
+    // int coordinates[2];
+    // MPI_Cart_get(comm, 2, dimension, periods, coordinates);
+    // int rank; 
+    // MPI_Comm_rank(comm, &rank);
     
-    //calculate the parameters for distribution
-    //number of rows or cols sent to other processors
-    int m = dimension[0]; 
-    int recvcountrow = block_decompose(n, m, coordinates[0]);
-    int recvcountcol = block_decompose(n, m, coordinates[1]);
+    // //calculate the parameters for distribution
+    // //number of rows or cols sent to other processors
+    // int m = dimension[0]; 
+    // int recvcountrow = block_decompose(n, m, coordinates[0]);
+    // int recvcountcol = block_decompose(n, m, coordinates[1]);
 
-    //setup parameters for distribution
-    int firstgridcoords[2] = {0,0};
-    int rankzero; 
-    MPI_Cart_rank(comm, firstgridcoords, &rankzero);
-    int *rowsendcount = NULL;
-    int *rowdispls = NULL;
+    // //setup parameters for distribution
+    // int firstgridcoords[2] = {0,0};
+    // int rankzero; 
+    // MPI_Cart_rank(comm, firstgridcoords, &rankzero);
+    // int *rowsendcount = NULL;
+    // int *rowdispls = NULL;
 
-    if (rank == rankzero)
-    {
-        //number of elements sent to each processor
-        rowsendcount = new int[m*m]; 
-        //displacement relative to sendbuf
-        rowdispls = new int[m*m]; 
-        for (int i = 0; i < m; i++)
-        {
-            for (int j = 0; j < m; j++)
-            {
-                rowsendcount[i*m+j] = block_decompose(n, m, j); 
-                if (j == 0) {
-                    if(i==0){
-                        rowdispls[i*m+j] = 0;
-                    }
-                    else {
-                        rowdispls[i*m+j] = rowdispls[(i-1)*m+j] + n*block_decompose(n, m, i-1);
-                    }
-                }
-                else {
-                    rowdispls[i*m+j] = rowdispls[i*m+j-1] + rowsendcount[i*m+j-1];
+    // if (rank == rankzero)
+    // {
+    //     //number of elements sent to each processor
+    //     rowsendcount = new int[m*m]; 
+    //     //displacement relative to sendbuf
+    //     rowdispls = new int[m*m]; 
+    //     for (int i = 0; i < m; i++)
+    //     {
+    //         for (int j = 0; j < m; j++)
+    //         {
+    //             rowsendcount[i*m+j] = block_decompose(n, m, j); 
+    //             if (j == 0) {
+    //                 if(i==0){
+    //                     rowdispls[i*m+j] = 0;
+    //                 }
+    //                 else {
+    //                     rowdispls[i*m+j] = rowdispls[(i-1)*m+j] + n*block_decompose(n, m, i-1);
+    //                 }
+    //             }
+    //             else {
+    //                 rowdispls[i*m+j] = rowdispls[i*m+j-1] + rowsendcount[i*m+j-1];
+    //             }
+    //         }
+    //     }
+        
+    // }
+    // //create recvbuf
+    // double *recvbuf = new double[recvcountrow*recvcountcol];
+
+    // //scatter data to other processors
+    // for (int i = 0; i < n / m; i++) {
+    //     MPI_Scatterv(&input_matrix[n*i], rowsendcount, rowdispls, MPI_DOUBLE, 
+    //     &recvbuf[recvcountcol*i], recvcountcol, MPI_DOUBLE, rankzero, comm);
+    // }
+    
+    // //scatter the remainder data
+    // if (n%m != 0) 
+    // {
+    //     //create new communicators
+    //     MPI_Comm rows_comm;
+    //     int color;
+    //     if (coordinates[0] < n%m){
+    //         color = 0;
+    //     }
+    //     else {
+    //         color = 1;
+    //     }
+    //     MPI_Comm_split(comm, color, 1, &rows_comm);
+
+    //     int temp = n / m;
+    //     if(color==0) {
+    //         MPI_Scatterv(&input_matrix[n*temp], rowsendcount, rowdispls, MPI_DOUBLE, 
+    //         &recvbuf[recvcountcol*temp], recvcountcol, MPI_DOUBLE, rankzero, rows_comm);
+    //     }
+    //     //release the comm
+    //     MPI_Comm_free(&rows_comm);
+    // }
+
+    // *local_matrix = recvbuf;
+
+    int cordas[2], dimens[2], timeslots[2];
+    int rank, localrank, tag;
+    int rowreceivecnt, colreceivecnt;
+    int *rowsendcnt = NULL, *rowdisplays = NULL;
+    int restdimens[2] = {0, 0};
+    MPI_Cart_get(comm, 2, dimens, timeslots, cordas);
+    MPI_Comm_rank(comm, &rank);
+
+    rowreceivecnt = block_decompose(n, dimens[0], cordas[0]);
+    colreceivecnt = block_decompose(n, dimens[0], cordas[1]);
+
+    MPI_Cart_rank(comm, restdimens, &localrank);
+
+    if(localrank == rank){
+        rowsendcnt = new int[dimens[0] * dimens[0]];
+        rowdisplays = new int[dimens[0] * dimens[0]];
+        for(int i = 0; i < dimens[0]; ++i){
+            for(int j = 0; j < dimens[0]; ++j){
+                rowsendcnt[i*(dimens[0]) + j] = block_decompose(n, dimens[0], j);
+                if(j == 0){
+                    rowdisplays[i*(dimens[0]) + j] = (i == 0) ? 0 : rowdisplays[(i-1)*(dimens[0]) + j] + n*block_decompose(n, dimens[0], i-1);
+                }else{
+                    rowdisplays[i*(dimens[0]) + j] = rowdisplays[i*dimens[0] + j - 1] + rowsendcnt[i*dimens[0] + j - 1];
                 }
             }
         }
-        
-    }
-    //create recvbuf
-    double *recvbuf = new double[recvcountrow*recvcountcol];
-
-    //scatter data to other processors
-    for (int i = 0; i < n / m; i++) {
-        MPI_Scatterv(&input_matrix[n*i], rowsendcount, rowdispls, MPI_DOUBLE, 
-        &recvbuf[recvcountcol*i], recvcountcol, MPI_DOUBLE, rankzero, comm);
-    }
-    
-    //scatter the remainder data
-    if (n%m != 0) 
-    {
-        //create new communicators
-        MPI_Comm rows_comm;
-        int color;
-        if (coordinates[0] < n%m){
-            color = 0;
-        }
-        else {
-            color = 1;
-        }
-        MPI_Comm_split(comm, color, 1, &rows_comm);
-
-        int temp = n / m;
-        if(color==0) {
-            MPI_Scatterv(&input_matrix[n*temp], rowsendcount, rowdispls, MPI_DOUBLE, 
-            &recvbuf[recvcountcol*temp], recvcountcol, MPI_DOUBLE, rankzero, rows_comm);
-        }
-        //release the comm
-        MPI_Comm_free(&rows_comm);
     }
 
-    *local_matrix = recvbuf;
+    double *receivebuffer = new double[rowreceivecnt * colreceivecnt];
+    int temp1 = n / dimens[0], temp2 = n % dimens[0];
+    for(int i = 0; i < temp; ++i){
+        MPI_Scatterv(&input_matrix[i*n], rowsendcnt, rowdisplays, MPI_DOUBLE, &receivebuffer[i*colreceivecnt], colreceivecnt, MPI_DOUBLE, localrank, comm);
+    }
+
+    if(temp2){
+        MPI_Comm row_comm;
+        if(cordas[0] >= temp2){
+            tag = 1;
+        }else{
+            tag = 0;
+        }
+        MPI_Comm_split(comm, tag, 1, &row_comm);
+
+        if(tag == 0){
+            MPI_Scatterv(&input_matrix[n*temp1], rowsendcnt, rowdisplays, MPI_DOUBLE, &receivebuffer[colreceivecnt*temp1], colreceivecnt, MPI_DOUBLE, localrank, row_comm);
+        }
+        MPI_Comm_free(&row_comm);
+    }
+    *local_matrix = receivebuffer;
+
 }
 
 void transpose_bcast_vector(const int n, double* col_vector, double* row_vector, MPI_Comm comm)
