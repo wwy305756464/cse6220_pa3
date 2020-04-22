@@ -572,8 +572,8 @@ void distributed_jacobi(const int n, double* local_A, double* local_b, double* l
         distributed_matrix_vector_mult(n, local_A, local_x, Asum, comm);
 
         if(cordas[1] == 0){
-            double errsum = 0;
-            double errlocal = 0;
+            double errsum = 0.0;
+            double errlocal = 0.0;
             for(int j = 0; j < rowcnt; ++j){
                 errlocal += (Asum[j] - local_b[j]) * (Asum[j] - local_b[j]);
             }
