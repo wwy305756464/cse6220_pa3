@@ -560,14 +560,14 @@ void distributed_jacobi(const int n, double* local_A, double* local_b, double* l
 
     if(cordas[1] == 0){
         Rsum = new double[rowcnt];
-        //Asum = new double[rowcnt];
-    }
-
-    if(cordas[1] == 0){
         Asum = new double[rowcnt];
     }
 
-    for(int i = 0; i < max_iter; ++i){
+    // if(cordas[1] == 0){
+    //     Asum = new double[rowcnt];
+    // }
+
+    for(int iter = 0; iter < max_iter; ++iter){
         distributed_matrix_vector_mult(n, R, local_x, Rsum, comm);
         distributed_matrix_vector_mult(n, local_A, local_x, Asum, comm);
 
