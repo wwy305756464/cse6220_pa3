@@ -86,7 +86,7 @@ void distribute_vector(const int n, double* input_vector, double** local_vector,
 
 
     MPI_Comm firstcolm;
-    int temp = dimens[0];
+    //int temp = dimens[0];
     if(cordas[1] != 0){
         tag = 1;
     }else{
@@ -96,16 +96,16 @@ void distribute_vector(const int n, double* input_vector, double** local_vector,
     MPI_Cart_rank(comm, restdimens, &localrank);
 
     if(rank == localrank){
-        sendcnt = new int[temp];
-        displays = new int[temp];
-        for(int i = 0; i < n; ++i){
-            sendcnt[i] = block_decompose(n, temp, i);
+        sendcnt = new int[dimens[0]];
+        displays = new int[dimens[0]];
+        for(int i = 0; i < dimens[0]; ++i){
+            sendcnt[i] = block_decompose(n, dimens[0], i);
             displays[i] = (i == 0) ? 0 : displays[i - 1] + sendcnt[i - 1];   
         }
     }
 
     if(tag == 0){
-        receivecnt = block_decompose(n, temp, cordas[0]);
+        receivecnt = block_decompose(n, dimens[0], cordas[0]);
         double *receivebuffer = new double[receivecnt];
         MPI_Scatterv(&input_vector[0], sendcnt, displays, MPI_DOUBLE, receivebuffer, receivecnt, MPI_DOUBLE, localrank, firstcolm);
         *local_vector = receivebuffer;
@@ -117,44 +117,69 @@ void gather_vector(const int n, double* local_vector, double* output_vector, MPI
 {
     // TODO
     // retrieve Cartesian topology information
-    int dimension[2];
-    int periods[2];
-    int coordinates[2];
-    MPI_Cart_get(comm, 2, dimension, periods, coordinates);
+    // int dimension[2];
+    // int periods[2];
+    // int coordinates[2];
+    // MPI_Cart_get(comm, 2, dimension, periods, coordinates);
 
-    // get sendcount for gathering
-    int m = dimension[0];
-    int sendcount = block_decompose(n, m, coordinates[0]);
+    // // get sendcount for gathering
+    // int m = dimension[0];
+    // int sendcount = block_decompose(n, m, coordinates[0]);
 
-    //create comm for the column
+    // //create comm for the column
+    // MPI_Comm column_comm;
+    // MPI_Comm_split(comm, coordinates[1], coordinates[0], &column_comm);
+
+    // //calculate the parameters for gathering
+    // int *recvcounts = NULL;
+    // int *displs = NULL;
+    // if (coordinates[0]==0 && coordinates[1]==0)
+    // {
+    //     recvcounts = new int[m];
+    //     displs = new int[m];
+    //     for (int i = 0; i < m; i++)
+    //     {
+    //         recvcounts[i] = block_decompose(n, m, i);
+    //         if (i == 0){
+    //             displs[i] = 0;
+    //         }
+    //         else {
+    //             displs[i] = displs[i-1] + recvcounts[i-1];
+    //         }
+    //     }
+    // }
+    
+    // //Gather data from processors (i,0) onto the processor (0,0)
+    // if(coordinates[1]==0){
+    //     MPI_Gatherv(local_vector, sendcount, MPI_DOUBLE, output_vector, 
+    //     recvcounts, displs, MPI_DOUBLE, 0, column_comm);
+    // }
+    // // release the column_comm
+    // MPI_Comm_free(&column_comm);
+
+    int cordas[2], dimens[2], timeslots[2];
+    int sendcnt;
+    int *receivecnt = NULL, *displays = NULL;
+    MPI_Cart_get(comm, 2, dimens, timeslots, cordas);
+
     MPI_Comm column_comm;
-    MPI_Comm_split(comm, coordinates[1], coordinates[0], &column_comm);
+    //int temp = dimens[0];
+    sendcnt = block_decompose(n, dimens[0], cordas[0]);
 
-    //calculate the parameters for gathering
-    int *recvcounts = NULL;
-    int *displs = NULL;
-    if (coordinates[0]==0 && coordinates[1]==0)
-    {
-        recvcounts = new int[m];
-        displs = new int[m];
-        for (int i = 0; i < m; i++)
-        {
-            recvcounts[i] = block_decompose(n, m, i);
-            if (i == 0){
-                displs[i] = 0;
-            }
-            else {
-                displs[i] = displs[i-1] + recvcounts[i-1];
-            }
+    MPI_Comm_split(comm, cordas[1], cordas[0], &column_comm);
+
+    if(cordas[0] == 0 && cordas[1] == 0){
+        receivecnt = new int[dimens[0]];
+        displays = new int[dimens[0]];
+        for(int i = 0; i < dimens[0]; ++i){
+            receivecnt[i] = block_decompose(n, dimens[0], i);
+            displays[i] = (i == 0) ? 0 : displays[i - 1] + receivecnt[i - 1];
         }
     }
-    
-    //Gather data from processors (i,0) onto the processor (0,0)
-    if(coordinates[1]==0){
-        MPI_Gatherv(local_vector, sendcount, MPI_DOUBLE, output_vector, 
-        recvcounts, displs, MPI_DOUBLE, 0, column_comm);
+
+    if(cordas[1] == 0){
+        MPI_Gatherv(local_vector, sendcnt, MPI_DOUBLE, output_vector, receivecnt, displays, MPI_DOUBLE, 0, column_comm);
     }
-    // release the column_comm
     MPI_Comm_free(&column_comm);
 }
 
