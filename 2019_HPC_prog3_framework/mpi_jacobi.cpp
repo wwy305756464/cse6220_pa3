@@ -24,7 +24,7 @@
 void distribute_vector(const int n, double* input_vector, double** local_vector, MPI_Comm comm)
 {
     // TODO
-    retrieve Cartesian topology information
+    //retrieve Cartesian topology information
     int dimension[2];
     int periods[2];
     int coordinates[2];
