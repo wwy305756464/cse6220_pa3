@@ -85,14 +85,14 @@ void distribute_vector(const int n, double* input_vector, double** local_vector,
     MPI_Comm_rank(comm, &rank);
 
 
-    MPI_Comm 1stcolm;
+    MPI_Comm firstcolm;
     int temp = dimens[0];
     if(cordas[1] != 0){
         tag = 1;
     }else{
         tag = 0;
     }
-    MPI_Comm_split(comm, tag, 1, &1stcolm);
+    MPI_Comm_split(comm, tag, 1, &firstcolm);
     MPI_Cart_rank(comm, restdimens, &localrank);
 
     if(rank == localrank){
@@ -107,7 +107,7 @@ void distribute_vector(const int n, double* input_vector, double** local_vector,
     if(tag == 0){
         receivecnt = block_decompose(n, temp, cordas[0]);
         double *receivebuffer = new double[receivecnt];
-        MPI_Scatterv(&input_vector[0], sendcnt, displays, MPI_DOUBLE, receivebuffer, receivecnt, MPI_DOUBLE, localrank, 1stcolm);
+        MPI_Scatterv(&input_vector[0], sendcnt, displays, MPI_DOUBLE, receivebuffer, receivecnt, MPI_DOUBLE, localrank, firstcolm);
         *local_vector = receivebuffer;
     }
 }
