@@ -519,7 +519,7 @@ void distributed_jacobi(const int n, double* local_A, double* local_b, double* l
     // }
     int cordas[2], dimens[2], timeslots[2];
     int localrank;
-    int restdimens[] = {0, 0};
+    int restdimens[2] = {0, 0};
     bool status = false;
     MPI_Cart_get(comm, 2, dimens, timeslots, cordas);
     MPI_Cart_rank(comm, restdimens, &localrank);
@@ -560,12 +560,12 @@ void distributed_jacobi(const int n, double* local_A, double* local_b, double* l
 
     if(cordas[1] == 0){
         Rsum = new double[rowcnt];
-        Asum = new double[rowcnt];
+        //Asum = new double[rowcnt];
     }
 
-    // if(cordas[1] == 0){
-    //     Asum = new double[rowcnt];
-    // }
+    if(cordas[1] == 0){
+        Asum = new double[rowcnt];
+    }
 
     for(int i = 0; i < max_iter; ++i){
         distributed_matrix_vector_mult(n, R, local_x, Rsum, comm);
