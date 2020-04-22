@@ -589,7 +589,7 @@ void distributed_jacobi(const int n, double* local_A, double* local_b, double* l
             break;
         }else if(cordas[1] == 0){
             for(int p = 0; p < rowcnt; ++p){
-                local_x[i] = (local_b[i] - Rsum[i])/Diag[i];
+                local_x[p] = (local_b[p] - Rsum[p])/Diag[p];
             }
         }
     }
