@@ -530,7 +530,7 @@ void distribute_vector(const int n, double* input_vector, double** local_vector,
     int pval, qval;
     MPI_Comm_size(comm, &pval);
     qval = (int) sqrt(pval);
-    
+
     MPI_Comm_split(comm, tag, 1, &firstcolm);
     MPI_Cart_rank(comm, restdimens, &localrank);
 
@@ -548,7 +548,7 @@ void distribute_vector(const int n, double* input_vector, double** local_vector,
         double *receivebuffer = new double[receivecnt];
         MPI_Scatterv(&input_vector[0], sendcnt, displays, MPI_DOUBLE, receivebuffer, receivecnt, MPI_DOUBLE, localrank, firstcolm);
         *local_vector = receivebuffer;
-        free(eceivebuffer);
+        free(receivebuffer);
     }
     free(sendcnt);
     free(displays);
