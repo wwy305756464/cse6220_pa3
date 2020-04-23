@@ -605,7 +605,8 @@ void gather_vector(const int n, double* local_vector, double* output_vector, MPI
     int cordas[2], dimens[2], timeslots[2];
     int sendcnt;
     int *receivecnt = NULL, *displays = NULL;
-    int restdimens[2] = {true, false};
+    //int restdimens[2] = {true, false};
+    int restdimens[2] = {0, 0};
     MPI_Cart_get(comm, 2, dimens, timeslots, cordas);
 
     MPI_Comm column_comm;
@@ -734,6 +735,10 @@ void distribute_matrix(const int n, double* input_matrix, double** local_matrix,
 
     MPI_Cart_rank(comm, restdimens, &localrank);
 
+    int pval3, qval3; //get value of p and q
+    MPI_Comm_size(comm, &pval3);
+    qval3 = (int) sqrt(pval3);
+
     if(localrank == rank){
         rowsendcnt = new int[dimens[0] * dimens[0]];
         rowdisplays = new int[dimens[0] * dimens[0]];
@@ -769,7 +774,14 @@ void distribute_matrix(const int n, double* input_matrix, double** local_matrix,
         }
         MPI_Comm_free(&row_comm);
     }
+
+    
     *local_matrix = receivebuffer;
+
+    free(rowsendcnt);
+    free(rowdisplays);
+    free(receivebuffer);
+    return;
 
 }
 
