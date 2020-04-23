@@ -230,8 +230,8 @@ void distributed_matrix_vector_mult(const int n, double* local_A, double* local_
 	m = d[0]; 
     rowcount = block_decompose(n, m, mesh_location[0]);
     num_cols = block_decompose(n, m, mesh_location[1]);
-    *transposed_x = new double[num_cols]; 
-    *result = new double[rowcount];
+    transposed_x = new double[num_cols]; 
+    result = new double[rowcount];
     transpose_bcast_vector(n, local_x, transposed_x, comm);
 
     for (int i = 0; i < rowcount; ++i)
