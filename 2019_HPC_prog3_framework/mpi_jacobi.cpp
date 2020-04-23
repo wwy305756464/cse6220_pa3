@@ -975,6 +975,7 @@ void distributed_jacobi(const int n, double* local_A, double* local_b, double* l
     // }
     int cordas[2], dimens[2], timeslots[2];
     int localrank, rowcnt, colcnt;
+    double errsum, errlocal;
     int restdimens[2] = {0, 0};
     bool status = false;
     MPI_Cart_get(comm, 2, dimens, timeslots, cordas);
@@ -1000,12 +1001,13 @@ void distributed_jacobi(const int n, double* local_A, double* local_b, double* l
     double *Diag = NULL;
     double *Rsum = NULL;
     double *Asum = NULL;
-    for(int i = 0; i < rowcnt; ++i){
-        temp[i] = (cordas[0] != cordas[1]) ? 0.0 : local_A[i*colcnt + i];
-    }
 
     if(cordas[1] == 0){
         Diag = new double[rowcnt];
+    }
+
+    for(int i = 0; i < rowcnt; ++i){
+        temp[i] = (cordas[0] != cordas[1]) ? 0.0 : local_A[i*colcnt + i];
     }
 
     MPI_Reduce(temp, Diag, rowcnt, MPI_DOUBLE, MPI_SUM, 0, row_comm);
@@ -1028,8 +1030,8 @@ void distributed_jacobi(const int n, double* local_A, double* local_b, double* l
         distributed_matrix_vector_mult(n, local_A, local_x, Asum, comm);
 
         if(cordas[1] == 0){
-            double errsum = 0.0;
-            double errlocal = 0.0;
+            errsum = 0.0;
+            errlocal = 0.0;
             for(int j = 0; j < rowcnt; ++j){
                 errlocal += (Asum[j] - local_b[j]) * (Asum[j] - local_b[j]);
             }
