@@ -974,18 +974,19 @@ void distributed_jacobi(const int n, double* local_A, double* local_b, double* l
     //     }
     // }
     int cordas[2], dimens[2], timeslots[2];
-    int localrank;
+    int localrank, rowcnt, colcnt;
     int restdimens[2] = {0, 0};
     bool status = false;
     MPI_Cart_get(comm, 2, dimens, timeslots, cordas);
     MPI_Cart_rank(comm, restdimens, &localrank);
 
     MPI_Comm row_comm, column_comm;
-    
-    int rowcnt = block_decompose(n, dimens[0], cordas[0]);
-    int colcnt = block_decompose(n, dimens[0], cordas[1]);
+
+    rowcnt = block_decompose(n, dimens[0], cordas[0]);
+    colcnt = block_decompose(n, dimens[0], cordas[1]);
 
     double* R = new double[rowcnt*colcnt];
+
     for(int i = 0; i < rowcnt; ++i){
         for(int j = 0; j < colcnt; ++j){
             R[i*colcnt + j] = (cordas[0] == cordas[1] && i == j) ? 0 : local_A[i*colcnt + j];
@@ -996,9 +997,9 @@ void distributed_jacobi(const int n, double* local_A, double* local_b, double* l
     MPI_Comm_split(comm, cordas[1], cordas[0], &column_comm);
 
     double *temp = new double[rowcnt];
-    double *Diag = NULL;
-    double *Rsum = NULL;
-    double *Asum = NULL;
+    double *Diag = NULL, Rsum = NULL, Asum = NULL;
+    //double *Rsum = NULL;
+    //double *Asum = NULL;
     for(int i = 0; i < rowcnt; ++i){
         temp[i] = (cordas[0] != cordas[1]) ? 0.0 : local_A[i*colcnt + i];
     }
@@ -1049,6 +1050,11 @@ void distributed_jacobi(const int n, double* local_A, double* local_b, double* l
         }
     }
 
+    free(R);
+    free(temp);
+    free(Diag);
+    free(Rsum);
+    free(Asum);
 }
 
 // wraps the distributed matrix vector multiplication
