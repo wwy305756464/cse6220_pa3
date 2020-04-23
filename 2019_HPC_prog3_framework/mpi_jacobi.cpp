@@ -605,6 +605,7 @@ void gather_vector(const int n, double* local_vector, double* output_vector, MPI
     int cordas[2], dimens[2], timeslots[2];
     int sendcnt;
     int *receivecnt = NULL, *displays = NULL;
+    int restdimens[2] = {true, false};
     MPI_Cart_get(comm, 2, dimens, timeslots, cordas);
 
     MPI_Comm column_comm;
@@ -625,7 +626,11 @@ void gather_vector(const int n, double* local_vector, double* output_vector, MPI
     if(cordas[1] == 0){
         MPI_Gatherv(local_vector, sendcnt, MPI_DOUBLE, output_vector, receivecnt, displays, MPI_DOUBLE, 0, column_comm);
     }
+     free(sendcnt);
+    free(displays);
+
     MPI_Comm_free(&column_comm);
+    return;
 }
 
 void distribute_matrix(const int n, double* input_matrix, double** local_matrix, MPI_Comm comm)
