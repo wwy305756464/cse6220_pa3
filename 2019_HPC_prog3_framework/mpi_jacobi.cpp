@@ -626,7 +626,7 @@ void gather_vector(const int n, double* local_vector, double* output_vector, MPI
     if(cordas[1] == 0){
         MPI_Gatherv(local_vector, sendcnt, MPI_DOUBLE, output_vector, receivecnt, displays, MPI_DOUBLE, 0, column_comm);
     }
-     free(sendcnt);
+    free(receivecnt);
     free(displays);
 
     MPI_Comm_free(&column_comm);
