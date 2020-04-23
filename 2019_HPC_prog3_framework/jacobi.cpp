@@ -47,10 +47,8 @@ void jacobi(const int n, double* A, double* b, double* x, int max_iter, double l
 {
     // TODO
     double Diag[n], R[n * n], tempx[n];
-    // double R[n * n];
-    // double tempx[n];
     double templ2 = 0.0;
-    int cnt = 0;
+    int cnt = 0, stopoint;
 
     for(int i = 0; i < n; ++i){
         x[i] = 0;
@@ -58,8 +56,8 @@ void jacobi(const int n, double* A, double* b, double* x, int max_iter, double l
             if(i != j){
                 R[i * n + j] = A[i * n + j];
             }else{
-                Diag[i] = A[i * n + j];
                 R[i * n + j] = 0;
+                Diag[i] = A[i * n + j];
             }
         }
     }
@@ -73,7 +71,7 @@ void jacobi(const int n, double* A, double* b, double* x, int max_iter, double l
         for(int i = 0; i < n; ++i){
             templ2 += ((tempx[i] - b[i]) * (tempx[i] - b[i]));
         }
-        int stoppoint = sqrt(templ2);
+        stoppoint = sqrt(templ2);
         if(l2_termination > stoppoint){
             break;
         }
