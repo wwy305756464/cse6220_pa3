@@ -775,12 +775,12 @@ void distribute_matrix(const int n, double* input_matrix, double** local_matrix,
         MPI_Comm_free(&row_comm);
     }
 
-    
+
     *local_matrix = receivebuffer;
 
     free(rowsendcnt);
     free(rowdisplays);
-    free(receivebuffer);
+    //free(receivebuffer);
     return;
 
 }
