@@ -527,7 +527,7 @@ void distribute_vector(const int n, double* input_vector, double** local_vector,
     }else{
         tag = 0;
     }
-    int pval, qval;
+    int pval, qval; //get value of p and q
     MPI_Comm_size(comm, &pval);
     qval = (int) sqrt(pval);
 
