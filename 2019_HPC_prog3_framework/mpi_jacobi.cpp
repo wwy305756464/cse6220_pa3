@@ -745,11 +745,12 @@ void distribute_matrix(const int n, double* input_matrix, double** local_matrix,
         for(int i = 0; i < dimens[0]; ++i){
             for(int j = 0; j < dimens[0]; ++j){
                 rowsendcnt[i*(dimens[0]) + j] = block_decompose(n, dimens[0], j);
-                if(j == 0){
-                    rowdisplays[i*(dimens[0]) + j] = (i == 0) ? 0 : rowdisplays[(i-1)*(dimens[0]) + j] + n*block_decompose(n, dimens[0], i-1);
-                }else{
-                    rowdisplays[i*(dimens[0]) + j] = rowdisplays[i*dimens[0] + j - 1] + rowsendcnt[i*dimens[0] + j - 1];
-                }
+                // if(j == 0){
+                //     rowdisplays[i*(dimens[0]) + j] = (i == 0) ? 0 : rowdisplays[(i-1)*(dimens[0]) + j] + n*block_decompose(n, dimens[0], i-1);
+                // }else{
+                //     rowdisplays[i*(dimens[0]) + j] = rowdisplays[i*dimens[0] + j - 1] + rowsendcnt[i*dimens[0] + j - 1];
+                // }
+                rowdisplays[i*(dimens[0]) + j] = ((j == 0) ? ((i == 0) ? 0 : rowdisplays[(i-1)*(dimens[0]) + j] + n*block_decompose(n, dimens[0], i-1)) : rowdisplays[i*dimens[0] + j - 1] + rowsendcnt[i*dimens[0] + j - 1]);
             }
         }
     }
