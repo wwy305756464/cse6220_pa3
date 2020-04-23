@@ -25,7 +25,7 @@ void distribute_vector(const int n, double* input_vector, double** local_vector,
 {
     // TODO
     //retrieve Cartesian topology information
-    int cordas[2], dimens[2], timeslots[2];
+    int cordas[2], dimens[2], timeslots[2]; //Final Test
     int rank, tag, localrank;
     int receivecnt;
     int restdimens[2] = {0, 0};
