@@ -539,7 +539,7 @@ void distribute_vector(const int n, double* input_vector, double** local_vector,
         displays = new int[dimens[0]];
         for(int i = 0; i < dimens[0]; ++i){
             sendcnt[i] = block_decompose(n, dimens[0], i);
-            displays[i] = (i == 0) ? 0 : displays[i - 1] + sendcnt[i - 1];   //set value of display[i]
+            displays[i] = (i == 0) ? 0 : displays[i - 1] + sendcnt[i - 1];   //set value of display[i] 0 or new
         }
     }
 
