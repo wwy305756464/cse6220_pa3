@@ -546,7 +546,7 @@ void distribute_vector(const int n, double* input_vector, double** local_vector,
     if(tag == 0){
         receivecnt = block_decompose(n, dimens[0], cordas[0]);
         double *receivebuffer = new double[receivecnt];
-        MPI_Scatterv(&input_vector[0], sendcnt, displays, MPI_DOUBLE, receivebuffer, receivecnt, MPI_DOUBLE, localrank, firstcolm);
+        MPI_Scatterv(&input_vector[0], sendcnt, displays, MPI_DOUBLE, receivebuffer, receivecnt, MPI_DOUBLE, localrank, firstcolm); //scatterv
         *local_vector = receivebuffer;
         //free(receivebuffer);
     }
