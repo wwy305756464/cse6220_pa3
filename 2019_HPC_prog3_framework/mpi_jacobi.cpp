@@ -1,12 +1,12 @@
-// /**
-//  * @file    mpi_jacobi.cpp
-//  * @author  Patrick Flick <patrick.flick@gmail.com>
-//  * @brief   Implements MPI functions for distributing vectors and matrixes,
-//  *          parallel distributed matrix-vector multiplication and Jacobi's
-//  *          method.
-//  *
-//  * Copyright (c) 2014 Georgia Institute of Technology. All Rights Reserved.
-//  */
+/**
+ * @file    mpi_jacobi.cpp
+ * @author  Patrick Flick <patrick.flick@gmail.com>
+ * @brief   Implements MPI functions for distributing vectors and matrixes,
+ *          parallel distributed matrix-vector multiplication and Jacobi's
+ *          method.
+ *
+ * Copyright (c) 2014 Georgia Institute of Technology. All Rights Reserved.
+ */
 
 #include "mpi_jacobi.h"
 #include "jacobi.h"
@@ -21,11 +21,11 @@
  * TODO: Implement your solutions here
  */
 
+
 void distribute_vector(const int n, double* input_vector, double** local_vector, MPI_Comm comm)
 {
     // TODO
-    //retrieve Cartesian topology information
-    int cordas[2], dimens[2], timeslots[2]; //Final Test
+    int cordas[2], dimens[2], timeslots[2];
     int rank, tag, localrank;
     int receivecnt;
     int restdimens[2] = {0, 0};
@@ -71,11 +71,11 @@ void distribute_vector(const int n, double* input_vector, double** local_vector,
     return;
 }
 
+
 // gather the local vector distributed among (i,0) to the processor (0,0)
 void gather_vector(const int n, double* local_vector, double* output_vector, MPI_Comm comm)
 {
     // TODO
-    // retrieve Cartesian topology information
     int cordas[2], dimens[2], timeslots[2];
     int sendcnt;
     int *receivecnt = NULL, *displays = NULL;
@@ -115,7 +115,6 @@ void gather_vector(const int n, double* local_vector, double* output_vector, MPI
 void distribute_matrix(const int n, double* input_matrix, double** local_matrix, MPI_Comm comm)
 {
     // TODO
-    // retrieve Cartesian topology information
     int cordas[2], dimens[2], timeslots[2];
     int rank, localrank, tag;
     int rowreceivecnt, colreceivecnt;
@@ -178,11 +177,12 @@ void distribute_matrix(const int n, double* input_matrix, double** local_matrix,
     free(rowdisplays);
     //free(receivebuffer);
     return;
-
 }
+
 
 void transpose_bcast_vector(const int n, double* col_vector, double* row_vector, MPI_Comm comm)
 {
+    // TODO
     int d[2], loop[2], mesh_location[2], m;
     int rowcount, num_cols;
     MPI_Cart_get(comm, 2, d, loop, mesh_location);
@@ -216,10 +216,13 @@ void transpose_bcast_vector(const int n, double* col_vector, double* row_vector,
     // FREE COMM
     MPI_Comm_free(&column_comm);
     return;
+
 }
+
 
 void distributed_matrix_vector_mult(const int n, double* local_A, double* local_x, double* local_y, MPI_Comm comm)
 {
+    // TODO
     MPI_Comm COM_ROW;
     int d[2], loop[2], mesh_location[2], m;
     int rowcount, num_cols;
@@ -227,7 +230,7 @@ void distributed_matrix_vector_mult(const int n, double* local_A, double* local_
     MPI_Cart_get(comm, 2, d, loop, mesh_location);
     MPI_Comm_split(comm, mesh_location[0], mesh_location[1], &COM_ROW);
 
-	m = d[0]; 
+    m = d[0]; 
     rowcount = block_decompose(n, m, mesh_location[0]);
     num_cols = block_decompose(n, m, mesh_location[1]);
     transposed_x = new double[num_cols]; 
@@ -247,16 +250,15 @@ void distributed_matrix_vector_mult(const int n, double* local_A, double* local_
 }
 
 // Solves Ax = b using the iterative jacobi method
-void distributed_jacobi(const int n, double* local_A, double* local_b, double* local_x, MPI_Comm comm, int max_iter, double l2_termination)
+void distributed_jacobi(const int n, double* local_A, double* local_b, double* local_x,
+                MPI_Comm comm, int max_iter, double l2_termination)
 {
     // TODO
-    // retrieve Cartesian topology information
     int cordas[2], dimens[2], timeslots[2];
     int localrank, rowcnt, colcnt;
     double errsum, errlocal;
     int restdimens[2] = {0, 0};
     bool status = false;
-    double *R = NULL, *Diag = NULL, *Rsum = NULL, *Asum = NULL, *temp = NULL;
     MPI_Cart_get(comm, 2, dimens, timeslots, cordas);
     MPI_Cart_rank(comm, restdimens, &localrank);
 
@@ -265,7 +267,7 @@ void distributed_jacobi(const int n, double* local_A, double* local_b, double* l
     rowcnt = block_decompose(n, dimens[0], cordas[0]);
     colcnt = block_decompose(n, dimens[0], cordas[1]);
 
-    R = new double[rowcnt*colcnt];
+    double* R = new double[rowcnt*colcnt];
 
     for(int i = 0; i < rowcnt; ++i){
         for(int j = 0; j < colcnt; ++j){
@@ -276,11 +278,10 @@ void distributed_jacobi(const int n, double* local_A, double* local_b, double* l
     MPI_Comm_split(comm, cordas[0], cordas[1], &row_comm);
     MPI_Comm_split(comm, cordas[1], cordas[0], &column_comm);
 
-    //double *temp = new double[rowcnt];
-    temp = new double[rowcnt];
-    // double *Diag = NULL;
-    // double *Rsum = NULL;
-    // double *Asum = NULL;
+    double *temp = new double[rowcnt];
+    double *Diag = NULL;
+    double *Rsum = NULL;
+    double *Asum = NULL;
 
     if(cordas[1] == 0){
         Diag = new double[rowcnt];
@@ -344,6 +345,7 @@ void distributed_jacobi(const int n, double* local_A, double* local_b, double* l
     return;
 }
 
+
 // wraps the distributed matrix vector multiplication
 void mpi_matrix_vector_mult(const int n, double* A,
                             double* x, double* y, MPI_Comm comm)
@@ -379,4 +381,3 @@ void mpi_jacobi(const int n, double* A, double* b, double* x, MPI_Comm comm,
     // gather results back to rank 0
     gather_vector(n, local_x, x, comm);
 }
-
