@@ -553,7 +553,7 @@ void distribute_vector(const int n, double* input_vector, double** local_vector,
     free(sendcnt);
     free(displays);
 
-    MPI_Comm_free(&firstcolm);
+    //MPI_Comm_free(&firstcolm);
     return;
 }
 
