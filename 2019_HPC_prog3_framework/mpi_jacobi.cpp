@@ -25,6 +25,7 @@
 void distribute_vector(const int n, double* input_vector, double** local_vector, MPI_Comm comm)
 {
     // TODO
+    //Set Variable before processing
     int cordas[2], dimens[2], timeslots[2];
     int rank, tag, localrank;
     int receivecnt;
@@ -138,11 +139,6 @@ void distribute_matrix(const int n, double* input_matrix, double** local_matrix,
         for(int i = 0; i < dimens[0]; ++i){
             for(int j = 0; j < dimens[0]; ++j){
                 rowsendcnt[i*(dimens[0]) + j] = block_decompose(n, dimens[0], j);
-                // if(j == 0){
-                //     rowdisplays[i*(dimens[0]) + j] = (i == 0) ? 0 : rowdisplays[(i-1)*(dimens[0]) + j] + n*block_decompose(n, dimens[0], i-1);
-                // }else{
-                //     rowdisplays[i*(dimens[0]) + j] = rowdisplays[i*dimens[0] + j - 1] + rowsendcnt[i*dimens[0] + j - 1];
-                // }
                 rowdisplays[i*(dimens[0]) + j] = ((j == 0) ? ((i == 0) ? 0 : rowdisplays[(i-1)*(dimens[0]) + j] + n*block_decompose(n, dimens[0], i-1)) : rowdisplays[i*dimens[0] + j - 1] + rowsendcnt[i*dimens[0] + j - 1]);
             }
         }
@@ -301,10 +297,6 @@ void distributed_jacobi(const int n, double* local_A, double* local_b, double* l
         Rsum = new double[rowcnt];
         Asum = new double[rowcnt];
     }
-
-    // if(cordas[1] == 0){
-    //     Asum = new double[rowcnt];
-    // }
 
     for(int i = 0; i < max_iter; ++i){
         distributed_matrix_vector_mult(n, R, local_x, Rsum, comm);
