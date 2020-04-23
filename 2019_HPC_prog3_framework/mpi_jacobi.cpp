@@ -763,11 +763,12 @@ void distribute_matrix(const int n, double* input_matrix, double** local_matrix,
 
     if(temp2){
         MPI_Comm row_comm;
-        if(cordas[0] >= temp2){
-            tag = 1;
-        }else{
-            tag = 0;
-        }
+        // if(cordas[0] >= temp2){
+        //     tag = 1;
+        // }else{
+        //     tag = 0;
+        // }
+        tag = (cordas[0] >= temp2) ? 1 : 0;
         MPI_Comm_split(comm, tag, 1, &row_comm);
 
         if(tag == 0){
