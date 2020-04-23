@@ -256,7 +256,7 @@ void distributed_jacobi(const int n, double* local_A, double* local_b, double* l
     double errsum, errlocal;
     int restdimens[2] = {0, 0};
     bool status = false;
-    double *R = NULL, Diag = NULL, Rsum = NULL, Asum = NULL, *temp = NULL;
+    double *R = NULL, *Diag = NULL, *Rsum = NULL, *Asum = NULL, *temp = NULL;
     MPI_Cart_get(comm, 2, dimens, timeslots, cordas);
     MPI_Cart_rank(comm, restdimens, &localrank);
 
