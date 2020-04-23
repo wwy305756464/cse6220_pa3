@@ -789,15 +789,14 @@ void distribute_matrix(const int n, double* input_matrix, double** local_matrix,
 
 void transpose_bcast_vector(const int n, double* col_vector, double* row_vector, MPI_Comm comm)
 {
-    int d[2];
-    int loop[2];
-    int mesh_location[2];
+    int d[2], loop[2], mesh_location[2], m;
+    int rowcount, num_cols;
     MPI_Cart_get(comm, 2, d, loop, mesh_location);
 
     // get # of col and row
-    int m = d[0];
-    int rowcount = block_decompose(n, m, mesh_location[0]);
-    int num_cols = block_decompose(n, m, mesh_location[1]); 
+    m = d[0];
+    rowcount = block_decompose(n, m, mesh_location[0]);
+    num_cols = block_decompose(n, m, mesh_location[1]); 
     
     if (mesh_location[0] == 0 && mesh_location[1] == 0)
     {
