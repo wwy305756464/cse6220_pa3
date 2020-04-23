@@ -997,9 +997,9 @@ void distributed_jacobi(const int n, double* local_A, double* local_b, double* l
     MPI_Comm_split(comm, cordas[1], cordas[0], &column_comm);
 
     double *temp = new double[rowcnt];
-    double *Diag = NULL, Rsum = NULL, Asum = NULL;
-    //double *Rsum = NULL;
-    //double *Asum = NULL;
+    double *Diag = NULL;
+    double *Rsum = NULL;
+    double *Asum = NULL;
     for(int i = 0; i < rowcnt; ++i){
         temp[i] = (cordas[0] != cordas[1]) ? 0.0 : local_A[i*colcnt + i];
     }
