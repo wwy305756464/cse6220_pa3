@@ -780,7 +780,7 @@ void distribute_matrix(const int n, double* input_matrix, double** local_matrix,
 
     free(rowsendcnt);
     free(rowdisplays);
-    free(receivebuffer);
+    //free(receivebuffer);
     return;
 
 }
