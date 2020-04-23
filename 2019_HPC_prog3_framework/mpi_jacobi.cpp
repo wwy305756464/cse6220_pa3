@@ -1055,6 +1055,11 @@ void distributed_jacobi(const int n, double* local_A, double* local_b, double* l
     free(Diag);
     free(Rsum);
     free(Asum);
+
+    MPI_Comm_free(&row_comm);
+    MPI_Comm_free(&column_comm);
+
+    return;
 }
 
 // wraps the distributed matrix vector multiplication
