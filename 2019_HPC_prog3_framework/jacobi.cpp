@@ -48,7 +48,7 @@ void jacobi(const int n, double* A, double* b, double* x, int max_iter, double l
     // TODO
     double Diag[n], R[n * n], tempx[n];
     double templ2 = 0.0;
-    int cnt = 0, stopoint;
+    int cnt = 0, stoppoint;
 
     for(int i = 0; i < n; ++i){
         x[i] = 0;
