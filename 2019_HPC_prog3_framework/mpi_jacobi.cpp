@@ -980,9 +980,8 @@ void distributed_jacobi(const int n, double* local_A, double* local_b, double* l
     MPI_Cart_get(comm, 2, dimens, timeslots, cordas);
     MPI_Cart_rank(comm, restdimens, &localrank);
 
-    MPI_Comm row_comm;
-    MPI_Comm column_comm;
-
+    MPI_Comm row_comm, column_comm;
+    
     int rowcnt = block_decompose(n, dimens[0], cordas[0]);
     int colcnt = block_decompose(n, dimens[0], cordas[1]);
 
