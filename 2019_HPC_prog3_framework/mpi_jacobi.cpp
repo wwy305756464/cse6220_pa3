@@ -614,6 +614,10 @@ void gather_vector(const int n, double* local_vector, double* output_vector, MPI
 
     MPI_Comm_split(comm, cordas[1], cordas[0], &column_comm);
 
+    int pval2, qval2; //get value of p and q
+    MPI_Comm_size(comm, &pval2);
+    qval2 = (int) sqrt(pval2);
+
     if(cordas[0] == 0 && cordas[1] == 0){
         receivecnt = new int[dimens[0]];
         displays = new int[dimens[0]];
