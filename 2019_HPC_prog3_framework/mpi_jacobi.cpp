@@ -25,7 +25,7 @@
 void distribute_vector(const int n, double* input_vector, double** local_vector, MPI_Comm comm)
 {
     // TODO
-    //Set Variable before processing
+    //Initialize the variable
     int cordas[2], dimens[2], timeslots[2];
     int rank, tag, localrank;
     int receivecnt;
@@ -42,13 +42,15 @@ void distribute_vector(const int n, double* input_vector, double** local_vector,
     }else{
         tag = 0;
     }
-    int pval, qval; //get value of p and q
+    //get the value of p and q
+    int pval, qval; 
     MPI_Comm_size(comm, &pval);
     qval = (int) sqrt(pval);
 
     MPI_Comm_split(comm, tag, 1, &firstcolm);
     MPI_Cart_rank(comm, restdimens, &localrank);
 
+    //gain the value of each parameter then scatter parameters
     if(rank == localrank){
         sendcnt = new int[dimens[0]]; 
         displays = new int[dimens[0]];
@@ -58,17 +60,20 @@ void distribute_vector(const int n, double* input_vector, double** local_vector,
         }
     }
 
+    //The processor which ranks is 0 should send data, and other related processors shoule receive data.
     if(tag == 0){
         receivecnt = block_decompose(n, dimens[0], cordas[0]);
         double *receivebuffer = new double[receivecnt];
-        MPI_Scatterv(&input_vector[0], sendcnt, displays, MPI_DOUBLE, receivebuffer, receivecnt, MPI_DOUBLE, localrank, firstcolm); //scatterv
+        MPI_Scatterv(&input_vector[0], sendcnt, displays, MPI_DOUBLE, receivebuffer, receivecnt, MPI_DOUBLE, localrank, firstcolm); 
         *local_vector = receivebuffer;
         //free(receivebuffer);
     }
+    //free pointers memeory
     free(sendcnt);
     free(displays);
 
     //MPI_Comm_free(&firstcolm); //Not workable
+    //end this function
     return;
 }
 
@@ -77,6 +82,7 @@ void distribute_vector(const int n, double* input_vector, double** local_vector,
 void gather_vector(const int n, double* local_vector, double* output_vector, MPI_Comm comm)
 {
     // TODO
+    //Initialize the variable
     int cordas[2], dimens[2], timeslots[2];
     int sendcnt;
     int *receivecnt = NULL, *displays = NULL;
@@ -84,16 +90,19 @@ void gather_vector(const int n, double* local_vector, double* output_vector, MPI
     int restdimens[2] = {0, 0};
     MPI_Cart_get(comm, 2, dimens, timeslots, cordas);
 
+    //create column for vector gathering and then count the send times
     MPI_Comm column_comm;
     //int temp = dimens[0];
     sendcnt = block_decompose(n, dimens[0], cordas[0]);
 
     MPI_Comm_split(comm, cordas[1], cordas[0], &column_comm);
 
-    int pval2, qval2; //get value of p and q
+    //get value of p and q
+    int pval2, qval2;
     MPI_Comm_size(comm, &pval2);
     qval2 = (int) sqrt(pval2);
 
+    //for various cases, calculate its parameter
     if(cordas[0] == 0 && cordas[1] == 0){
         receivecnt = new int[dimens[0]];
         displays = new int[dimens[0]];
@@ -103,19 +112,23 @@ void gather_vector(const int n, double* local_vector, double* output_vector, MPI
         }
     }
 
+    //this time, collecting data from processors whose rank is not 0
     if(cordas[1] == 0){
         MPI_Gatherv(local_vector, sendcnt, MPI_DOUBLE, output_vector, receivecnt, displays, MPI_DOUBLE, 0, column_comm);
     }
+    //free pointers memory
     free(receivecnt);
     free(displays);
 
     MPI_Comm_free(&column_comm);
+    //end this function
     return;
 }
 
 void distribute_matrix(const int n, double* input_matrix, double** local_matrix, MPI_Comm comm)
 {
     // TODO
+    //Initialize the variable
     int cordas[2], dimens[2], timeslots[2];
     int rank, localrank, tag;
     int rowreceivecnt, colreceivecnt;
@@ -124,15 +137,18 @@ void distribute_matrix(const int n, double* input_matrix, double** local_matrix,
     MPI_Cart_get(comm, 2, dimens, timeslots, cordas);
     MPI_Comm_rank(comm, &rank);
 
+    //set paramters for row counts and column counts for sending
     rowreceivecnt = block_decompose(n, dimens[0], cordas[0]);
     colreceivecnt = block_decompose(n, dimens[0], cordas[1]);
 
     MPI_Cart_rank(comm, restdimens, &localrank);
 
-    int pval3, qval3; //get value of p and q
+    //get value of p and q
+    int pval3, qval3;
     MPI_Comm_size(comm, &pval3);
     qval3 = (int) sqrt(pval3);
 
+    //calculate the value of each paramter
     if(localrank == rank){
         rowsendcnt = new int[dimens[0] * dimens[0]];
         rowdisplays = new int[dimens[0] * dimens[0]];
@@ -144,19 +160,16 @@ void distribute_matrix(const int n, double* input_matrix, double** local_matrix,
         }
     }
 
+    //set the buffer memeory for receiving
     double *receivebuffer = new double[rowreceivecnt * colreceivecnt];
     int temp1 = n / dimens[0], temp2 = n % dimens[0];
     for(int i = 0; i < temp1; ++i){
         MPI_Scatterv(&input_matrix[i*n], rowsendcnt, rowdisplays, MPI_DOUBLE, &receivebuffer[i*colreceivecnt], colreceivecnt, MPI_DOUBLE, localrank, comm);
     }
 
+    //after calculating the value of each data then scate parameter
     if(temp2){
         MPI_Comm row_comm;
-        // if(cordas[0] >= temp2){
-        //     tag = 1;
-        // }else{
-        //     tag = 0;
-        // }
         tag = (cordas[0] >= temp2) ? 1 : 0;
         MPI_Comm_split(comm, tag, 1, &row_comm);
 
@@ -169,9 +182,11 @@ void distribute_matrix(const int n, double* input_matrix, double** local_matrix,
 
     *local_matrix = receivebuffer;
 
+    //free pointers memory
     free(rowsendcnt);
     free(rowdisplays);
     //free(receivebuffer);
+    //end function
     return;
 }
 
@@ -179,14 +194,17 @@ void distribute_matrix(const int n, double* input_matrix, double** local_matrix,
 void transpose_bcast_vector(const int n, double* col_vector, double* row_vector, MPI_Comm comm)
 {
     // TODO
+    //Initialize the variable
     int d[2], loop[2], mesh_location[2], m;
     int rowcount, num_cols;
     MPI_Cart_get(comm, 2, d, loop, mesh_location);
 
     m = d[0];
+    //collect the value of number of rows and columns
     rowcount = block_decompose(n, m, mesh_location[0]);
     num_cols = block_decompose(n, m, mesh_location[1]); 
     
+    //discuss the situation that the distribution of each processor and recevive data or send data
     if (mesh_location[0] == 0 && mesh_location[1] == 0)
     {
         for (int i = 0; i < rowcount; ++i) {
@@ -209,7 +227,7 @@ void transpose_bcast_vector(const int n, double* col_vector, double* row_vector,
     MPI_Comm_split(comm, mesh_location[1], mesh_location[0], &column_comm);
     MPI_Bcast(row_vector, num_cols, MPI_DOUBLE, mesh_location[1], column_comm);
     
-    // FREE COMM
+    //free comm
     MPI_Comm_free(&column_comm);
     return;
 
@@ -219,6 +237,7 @@ void transpose_bcast_vector(const int n, double* col_vector, double* row_vector,
 void distributed_matrix_vector_mult(const int n, double* local_A, double* local_x, double* local_y, MPI_Comm comm)
 {
     // TODO
+    //Initialize the variable
     MPI_Comm COM_ROW;
     int d[2], loop[2], mesh_location[2], m;
     int rowcount, num_cols;
@@ -227,12 +246,14 @@ void distributed_matrix_vector_mult(const int n, double* local_A, double* local_
     MPI_Comm_split(comm, mesh_location[0], mesh_location[1], &COM_ROW);
 
     m = d[0]; 
+    //count the number of rows and columns
     rowcount = block_decompose(n, m, mesh_location[0]);
     num_cols = block_decompose(n, m, mesh_location[1]);
     transposed_x = new double[num_cols]; 
     result = new double[rowcount];
     transpose_bcast_vector(n, local_x, transposed_x, comm);
 
+    //calculate the product of matrix 
     for (int i = 0; i < rowcount; ++i)
     {
         result[i] = 0;
@@ -241,7 +262,9 @@ void distributed_matrix_vector_mult(const int n, double* local_A, double* local_
         }
     }
 
+    //mpi reduce 
     MPI_Reduce(result, local_y, rowcount, MPI_DOUBLE, MPI_SUM, 0, COM_ROW);
+    //end function
     return;
 }
 
@@ -250,6 +273,7 @@ void distributed_jacobi(const int n, double* local_A, double* local_b, double* l
                 MPI_Comm comm, int max_iter, double l2_termination)
 {
     // TODO
+    //Initialize the variable
     int cordas[2], dimens[2], timeslots[2];
     int localrank, rowcnt, colcnt;
     double errsum, errlocal;
@@ -260,11 +284,13 @@ void distributed_jacobi(const int n, double* local_A, double* local_b, double* l
 
     MPI_Comm row_comm, column_comm;
 
+    //count the number of rows and columns
     rowcnt = block_decompose(n, dimens[0], cordas[0]);
     colcnt = block_decompose(n, dimens[0], cordas[1]);
 
     double* R = new double[rowcnt*colcnt];
 
+    //calculate the value of each element in R
     for(int i = 0; i < rowcnt; ++i){
         for(int j = 0; j < colcnt; ++j){
             R[i*colcnt + j] = (cordas[0] == cordas[1] && i == j) ? 0 : local_A[i*colcnt + j];
@@ -325,6 +351,7 @@ void distributed_jacobi(const int n, double* local_A, double* local_b, double* l
         }
     }
 
+    //free pointers
     free(R);
     free(temp);
     free(Diag);
